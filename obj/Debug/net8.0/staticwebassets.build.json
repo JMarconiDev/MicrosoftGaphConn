@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "9vzFy7MzBPpnyPZ1UjPK65CAtzQCjjYk0cwOZ1ZxPL8=",
+  "Source": "MicrosoftGraphConn",
+  "BasePath": "_content/MicrosoftGraphConn",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

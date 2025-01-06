@@ -1,0 +1,33 @@
+[
+  {
+    "ContainingType": "MicrosoftGraphConn.Controllers.AzureAuthController",
+    "Method": "Authorize",
+    "RelativePath": "api/AzureAuth/authorize",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "MicrosoftGraphConn.Controllers.AzureAuthController",
+    "Method": "Callback",
+    "RelativePath": "api/AzureAuth/callback",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "code",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "state",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  }
+]
