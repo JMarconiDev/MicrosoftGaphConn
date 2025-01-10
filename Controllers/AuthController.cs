@@ -18,7 +18,7 @@ namespace MicrosoftGraphConn.Controllers
         private static readonly string CLIENT_SECRET =
             Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET") ?? "Falta AZURE_CLIENT_SECRET";
 
-        private const string SCOPE = "User.Read openid profile offline_access";
+        private const string SCOPE = "ChannelMessage.Read.All Chat.ReadWrite.All";
 
         [HttpGet("authorize")]
         public IActionResult Authorize()
@@ -37,7 +37,7 @@ namespace MicrosoftGraphConn.Controllers
         {
             if (string.IsNullOrWhiteSpace(code))
             {
-                return BadRequest("Parâmetro 'code' ausente.");
+                return BadRequest("Parï¿½metro 'code' ausente.");
             }
 
             var tokenUrl = $"https://login.microsoftonline.com/{TENANT_ID}/oauth2/v2.0/token";
