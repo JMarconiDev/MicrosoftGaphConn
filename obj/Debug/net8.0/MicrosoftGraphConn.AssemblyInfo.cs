@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("MicrosoftGraphConn")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6aee8707a15a514c5491aaf77789108c6b0c4dc8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cd57dc459a0a6740ac406b8265889932a6d7e9b3")]
 [assembly: System.Reflection.AssemblyProductAttribute("MicrosoftGraphConn")]
 [assembly: System.Reflection.AssemblyTitleAttribute("MicrosoftGraphConn")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

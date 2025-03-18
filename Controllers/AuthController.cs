@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Client;
+using System.Net.Http.Headers;
+using System.Text.Json;
 
 namespace MicrosoftGraphConn.Controllers
 {
@@ -6,55 +9,47 @@ namespace MicrosoftGraphConn.Controllers
     [Route("api/[controller]")]
     public class AzureAuthController : ControllerBase
     {
-        private static readonly string CLIENT_ID =
-            Environment.GetEnvironmentVariable("AZURE_CLIENT_ID") ?? "Falta AZURE_CLIENT_ID";
+        private static readonly string CLIENT_ID = Environment.GetEnvironmentVariable("AZURE_CLIENT_ID") ?? throw new ArgumentNullException("AZURE_CLIENT_ID");
+        private static readonly string TENANT_ID = Environment.GetEnvironmentVariable("AZURE_TENANT_ID") ?? throw new ArgumentNullException("AZURE_TENANT_ID");
+        private static readonly string CLIENT_SECRET = Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET") ?? throw new ArgumentNullException("AZURE_CLIENT_SECRET");
 
-        private static readonly string TENANT_ID =
-            Environment.GetEnvironmentVariable("AZURE_TENANT_ID") ?? "Falta AZURE_TENANT_ID";
+        private const string GRAPH_SCOPE = "https://graph.microsoft.com/.default";
+        private const string GRAPH_API_URL = "https://graph.microsoft.com/v1.0/me";
 
-        private static readonly string REDIRECT_URI =
-            Environment.GetEnvironmentVariable("AZURE_REDIRECT_URI") ?? "Falta AZURE_REDIRECT_URI";
+        private static IConfidentialClientApplication? _clientApp;
 
-        private static readonly string CLIENT_SECRET =
-            Environment.GetEnvironmentVariable("AZURE_CLIENT_SECRET") ?? "Falta AZURE_CLIENT_SECRET";
-
-        private const string SCOPE = "ChannelMessage.Read.All Chat.ReadWrite.All";
-
-        [HttpGet("authorize")]
-        public IActionResult Authorize()
+        public AzureAuthController()
         {
-            var url = $"https://login.microsoftonline.com/{TENANT_ID}/oauth2/v2.0/authorize" +
-                      $"?response_type=code" +
-                      $"&client_id={CLIENT_ID}" +
-                      $"&redirect_uri={Uri.EscapeDataString(REDIRECT_URI)}" +
-                      $"&scope={Uri.EscapeDataString(SCOPE)}";
-
-            return Redirect(url);
+            _clientApp = ConfidentialClientApplicationBuilder.Create(CLIENT_ID)
+                .WithClientSecret(CLIENT_SECRET)
+                .WithAuthority(new Uri($"https://login.microsoftonline.com/{TENANT_ID}"))
+                .Build();
         }
 
-        [HttpGet("callback")]
-        public async Task<IActionResult> Callback([FromQuery] string code, [FromQuery] string state)
+        [HttpGet("get-token")]
+        public async Task<IActionResult> GetAccessToken()
         {
-            if (string.IsNullOrWhiteSpace(code))
+            try
             {
-                return BadRequest("Par�metro 'code' ausente.");
+                var result = await _clientApp.AcquireTokenForClient(new[] { GRAPH_SCOPE }).ExecuteAsync();
+                return Ok(new { accessToken = result.AccessToken });
             }
-
-            var tokenUrl = $"https://login.microsoftonline.com/{TENANT_ID}/oauth2/v2.0/token";
-
-            var formData = new Dictionary<string, string>
+            catch (MsalException ex)
             {
-                { "client_id", CLIENT_ID },
-                { "grant_type", "authorization_code" },
-                { "code", code },
-                { "redirect_uri", REDIRECT_URI },
-                { "scope", SCOPE },
-                { "client_secret", CLIENT_SECRET }
-            };
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
 
-            using (var httpClient = new HttpClient())
+        [HttpGet("graph-me")]
+        public async Task<IActionResult> GetGraphMe()
+        {
+            try
             {
-                var response = await httpClient.PostAsync(tokenUrl, new FormUrlEncodedContent(formData));
+                var authResult = await _clientApp.AcquireTokenForClient(new[] { GRAPH_SCOPE }).ExecuteAsync();
+                using var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", authResult.AccessToken);
+
+                var response = await httpClient.GetAsync(GRAPH_API_URL);
                 var content = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
@@ -62,7 +57,12 @@ namespace MicrosoftGraphConn.Controllers
                     return StatusCode((int)response.StatusCode, content);
                 }
 
-                return Content(content, "application/json");
+                var json = JsonSerializer.Deserialize<object>(content);
+                return Ok(json);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
             }
         }
     }
